@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Target Rush - Game Over</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;700;800&family=JetBrains+Mono:wght@400;500;700&family=Hanken+Grotesk:wght@400;500&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+
+<!-- Firebase v9 compat CDN -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+          "surface-container": "#1f1f25","on-surface-variant": "#b9cacb","tertiary-fixed": "#e9ddff","primary": "#dbfcff","on-primary-container": "#006970","on-secondary-fixed-variant": "#810081","on-error": "#690005","outline-variant": "#3b494b","secondary-fixed": "#ffd7f5","surface-tint": "#00dbe9","error-container": "#93000a","surface-variant": "#35343a","surface-container-highest": "#35343a","primary-fixed": "#7df4ff","on-error-container": "#ffdad6","surface-container-lowest": "#0e0e13","primary-container": "#00f0ff","on-tertiary-container": "#7213ff","on-tertiary-fixed-variant": "#5700c9","surface-container-low": "#1b1b20","tertiary": "#faf3ff","surface": "#131318","on-primary": "#00363a","inverse-primary": "#006970","error": "#ffb4ab","on-tertiary": "#3c0090","on-background": "#e4e1e9","on-secondary": "#5b005b","primary-fixed-dim": "#00dbe9","surface-bright": "#39383e","secondary-container": "#fe00fe","tertiary-container": "#e1d2ff","secondary": "#ffabf3","on-primary-fixed-variant": "#004f54","on-tertiary-fixed": "#23005b","on-primary-fixed": "#002022","on-secondary-container": "#500050","inverse-on-surface": "#303036","background": "#131318","on-surface": "#e4e1e9","inverse-surface": "#e4e1e9","secondary-fixed-dim": "#ffabf3","surface-dim": "#131318","outline": "#849495","on-secondary-fixed": "#380038","tertiary-fixed-dim": "#d1bcff","surface-container-high": "#2a292f"
+        },
+        "borderRadius": {"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},
+        "spacing": {"margin-desktop":"40px","container-max":"1200px","margin-mobile":"20px","gutter":"16px","unit":"8px"},
+        "fontFamily": {"body-md":["Hanken Grotesk"],"label-sm":["JetBrains Mono"],"score-display":["JetBrains Mono"],"headline-md":["Sora"],"display-lg-mobile":["Sora"],"display-lg":["Sora"]},
+        "fontSize": {
+          "body-md":["16px",{"lineHeight":"24px","fontWeight":"400"}],"label-sm":["12px",{"lineHeight":"16px","fontWeight":"500"}],"score-display":["20px",{"lineHeight":"24px","letterSpacing":"0.05em","fontWeight":"700"}],"headline-md":["24px",{"lineHeight":"32px","fontWeight":"700"}],"display-lg-mobile":["36px",{"lineHeight":"42px","letterSpacing":"-0.02em","fontWeight":"800"}],"display-lg":["48px",{"lineHeight":"56px","letterSpacing":"-0.02em","fontWeight":"800"}]
+        }
+      }
+    }
+  }
+</script>
+<style>
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 48; }
+  .neon-glow-primary { box-shadow: 0 0 15px rgba(0,219,233,0.4), inset 0 0 10px rgba(0,219,233,0.2); }
+  .neon-glow-secondary { box-shadow: 0 0 15px rgba(254,0,254,0.4), inset 0 0 10px rgba(254,0,254,0.2); }
+  .glass-card { background: rgba(31,31,37,0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); border-top: 1px solid rgba(255,255,255,0.2); border-left: 1px solid rgba(255,255,255,0.2); }
+  @keyframes pulse-energy { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.8;transform:scale(1.02)} }
+  .animate-pulse-glow { animation: pulse-energy 3s infinite ease-in-out; }
+  @keyframes score-count { from{opacity:0;transform:scale(0.8)} to{opacity:1;transform:scale(1)} }
+  .score-appear { animation: score-count 0.5s cubic-bezier(0.175,0.885,0.32,1.275) forwards; }
+  #submitBtn.submitted { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
+  #submitBtn.success { border-color: rgba(0,219,233,0.5); color: #00dbe9; }
+  .rank-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-family: 'JetBrains Mono', monospace; font-weight: 700; margin-left: 8px; }
+</style>
+</head>
+<body class="bg-surface text-on-surface font-body-md min-h-screen overflow-x-hidden">
+
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 right-0 z-50 flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop h-20 bg-surface/80 backdrop-blur-xl border-b border-outline-variant/30 shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
+  <div class="flex items-center gap-4">
+    <span class="font-display-lg text-display-lg-mobile md:text-display-lg text-primary drop-shadow-[0_0_8px_rgba(0,219,233,0.6)]">Target Rush</span>
+  </div>
+  <div class="flex items-center gap-6">
+    <button class="material-symbols-outlined text-primary-fixed-dim hover:bg-primary/10 hover:text-primary transition-all duration-300 p-2 rounded-full active:scale-95">history</button>
+    <button class="material-symbols-outlined text-primary-fixed-dim hover:bg-primary/10 hover:text-primary transition-all duration-300 p-2 rounded-full active:scale-95">settings</button>
+  </div>
+</header>
+
+<!-- SideNavBar -->
+<nav class="fixed left-0 top-0 hidden md:flex flex-col h-full w-64 z-40 bg-surface-container-low/90 backdrop-blur-2xl border-r border-outline-variant/20 shadow-2xl pt-24 pb-8 px-4">
+  <div class="mb-8 px-4">
+    <h2 class="font-headline-md text-headline-md text-primary drop-shadow-[0_0_12px_#00dbe9]">TARGET RUSH</h2>
+    <p class="font-label-sm text-label-sm text-on-surface-variant opacity-70" id="pilotLabel">Elite Tier</p>
+  </div>
+  <div class="flex flex-col gap-2 flex-grow">
+    <a class="flex items-center gap-4 text-on-surface-variant px-6 py-4 opacity-70 hover:bg-white/5 hover:text-primary hover:translate-x-1 transition-all" href="index.html"><span class="material-symbols-outlined">sports_esports</span><span class="font-label-sm text-label-sm">Play</span></a>
+    <a class="flex items-center gap-4 text-on-surface-variant px-6 py-4 opacity-70 hover:bg-white/5 hover:text-primary hover:translate-x-1 transition-all" href="#"><span class="material-symbols-outlined">leaderboard</span><span class="font-label-sm text-label-sm">Rankings</span></a>
+    <a class="flex items-center gap-4 text-on-surface-variant px-6 py-4 opacity-70 hover:bg-white/5 hover:text-primary hover:translate-x-1 transition-all" href="#"><span class="material-symbols-outlined">military_tech</span><span class="font-label-sm text-label-sm">Trophies</span></a>
+    <a class="flex items-center gap-4 bg-secondary-container/20 text-secondary border-r-2 border-secondary px-6 py-4 shadow-[inset_0_0_15px_rgba(254,0,254,0.2)]" href="#"><span class="material-symbols-outlined">person</span><span class="font-label-sm text-label-sm">Profile</span></a>
+  </div>
+  <div class="mt-auto px-4">
+    <button class="w-full py-4 px-6 font-label-sm text-label-sm bg-primary-container text-on-primary-container rounded-xl font-bold hover:scale-105 active:scale-95 transition-all neon-glow-primary">UPGRADE GEAR</button>
+  </div>
+</nav>
+
+<!-- Main Canvas -->
+<main class="md:pl-64 pt-24 min-h-screen relative">
+  <!-- Background Decorative Elements -->
+  <div class="fixed inset-0 pointer-events-none overflow-hidden">
+    <div class="absolute -top-24 -right-24 w-96 h-96 bg-primary/10 rounded-full blur-[120px]"></div>
+    <div class="absolute bottom-1/4 -left-24 w-80 h-80 bg-secondary/10 rounded-full blur-[100px]"></div>
+  </div>
+
+  <div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-8 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+
+    <!-- Game Over Centerpiece -->
+    <div class="lg:col-span-7 flex flex-col gap-8">
+      <div class="glass-card p-10 rounded-2xl relative overflow-hidden flex flex-col items-center text-center">
+        <!-- Scanline effect -->
+        <div class="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,0,0,0.02),rgba(0,255,0,0.01),rgba(0,0,255,0.02))] bg-[length:100%_4px,3px_100%]"></div>
+
+        <h1 class="font-display-lg text-display-lg-mobile md:text-display-lg text-secondary mb-2 animate-pulse-glow drop-shadow-[0_0_20px_#fe00fe]" id="gameOverTitle">GAME OVER</h1>
+        <p class="font-body-md text-on-surface-variant mb-2 tracking-widest uppercase">System Terminated | Session End</p>
+        <p class="font-label-sm text-label-sm text-primary opacity-70 mb-8" id="pilotName">Pilot: —</p>
+
+        <!-- FIX: Score display — animates TO actual localStorage score, NOT hardcoded 128450 -->
+        <div class="w-full flex flex-col items-center justify-center gap-2 mb-10">
+          <span class="font-label-sm text-label-sm text-primary-fixed-dim uppercase tracking-widest">Final Performance Index</span>
+          <div class="glass-card bg-surface-container-highest/40 py-6 px-12 rounded-xl border-primary/30 neon-glow-primary score-appear">
+            <span id="finalScoreDisplay" class="font-score-display text-[64px] leading-none text-primary font-bold">0</span>
+          </div>
+        </div>
+
+        <!-- FIX: Buttons are now properly wired -->
+        <div class="flex flex-col sm:flex-row gap-4 w-full justify-center">
+          <!-- FIX: PLAY AGAIN now has onclick handler -->
+          <button id="playAgainBtn" onclick="window.location.href='index.html'"
+            class="px-8 py-4 bg-gradient-to-r from-primary-fixed-dim to-primary-container text-on-primary font-label-sm text-label-sm rounded-lg font-bold transition-all hover:scale-105 hover:shadow-[0_0_25px_rgba(0,219,233,0.5)] active:scale-95 flex items-center justify-center gap-2">
+            <span class="material-symbols-outlined">replay</span>
+            PLAY AGAIN
+          </button>
+          <!-- FIX: SUBMIT SCORE only fires on click, not on page load -->
+          <button id="submitBtn"
+            class="px-8 py-4 glass-card border border-secondary/40 text-secondary font-label-sm text-label-sm rounded-lg font-bold transition-all hover:bg-secondary/10 active:scale-95 flex items-center justify-center gap-2">
+            <span class="material-symbols-outlined">upload</span>
+            <span id="submitBtnText">SUBMIT SCORE</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Stats Bento — FIX: shows real stats from localStorage -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="glass-card p-4 rounded-xl text-center">
+          <p class="font-label-sm text-label-sm text-on-surface-variant mb-1">Targets Hit</p>
+          <p class="font-score-display text-primary text-headline-md" id="statHits">0</p>
+        </div>
+        <div class="glass-card p-4 rounded-xl text-center">
+          <p class="font-label-sm text-label-sm text-on-surface-variant mb-1">Best Combo</p>
+          <p class="font-score-display text-secondary text-headline-md" id="statCombo">x1</p>
+        </div>
+        <div class="glass-card p-4 rounded-xl text-center">
+          <p class="font-label-sm text-label-sm text-on-surface-variant mb-1">Score/Hit</p>
+          <p class="font-score-display text-primary text-headline-md" id="statAvg">0</p>
+        </div>
+        <div class="glass-card p-4 rounded-xl text-center">
+          <p class="font-label-sm text-label-sm text-on-surface-variant mb-1">Rank</p>
+          <p class="font-score-display text-tertiary-fixed-dim text-headline-md" id="statRank">#—</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Leaderboard Side Panel -->
+    <div class="lg:col-span-5 flex flex-col gap-6">
+      <div class="glass-card rounded-2xl p-6 flex flex-col h-full border-primary/20">
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="font-headline-md text-headline-md text-primary flex items-center gap-2">
+            <span class="material-symbols-outlined">emoji_events</span>
+            Global Rankings
+          </h3>
+          <span class="text-on-surface-variant font-label-sm text-label-sm" id="liveLabel">LIVE</span>
+        </div>
+        <div class="flex flex-col gap-2" id="leaderboardPanel">
+          <!-- Populated by JS -->
+        </div>
+        <button class="mt-8 w-full py-4 text-on-surface-variant font-label-sm text-label-sm hover:text-primary transition-colors flex items-center justify-center gap-2">
+          VIEW FULL LEADERBOARD
+          <span class="material-symbols-outlined">chevron_right</span>
+        </button>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full md:hidden flex justify-around items-center h-16 px-4 z-50 bg-surface/90 backdrop-blur-lg border-t border-primary/20 shadow-[0_-8px_20px_rgba(0,0,0,0.6)]">
+  <a class="flex flex-col items-center justify-center text-on-surface-variant/60 hover:text-primary/80 transition-all" href="index.html"><span class="material-symbols-outlined">home</span><span class="font-label-sm text-[10px]">Home</span></a>
+  <a class="flex flex-col items-center justify-center text-primary drop-shadow-[0_0_8px_#00dbe9] scale-110" href="#"><span class="material-symbols-outlined">bar_chart</span><span class="font-label-sm text-[10px]">Rank</span></a>
+  <a class="flex flex-col items-center justify-center text-on-surface-variant/60 hover:text-primary/80 transition-all" href="#"><span class="material-symbols-outlined">lock</span><span class="font-label-sm text-[10px]">Vault</span></a>
+  <a class="flex flex-col items-center justify-center text-on-surface-variant/60 hover:text-primary/80 transition-all" href="#"><span class="material-symbols-outlined">account_circle</span><span class="font-label-sm text-[10px]">User</span></a>
+</nav>
+
+<script>
+  /* ============================================================
+     FIREBASE CONFIG — replace with your own config from
+     https://console.firebase.google.com  →  Project Settings
+  ============================================================ */
+ const firebaseConfig = {
+  apiKey: "AIzaSyDzDWYzvWiXu6WSpBg-hooNYg4xuJ9MePE",
+  authDomain: "target-rush28.firebaseapp.com",
+  projectId: "target-rush28",
+  storageBucket: "target-rush28.firebasestorage.app",
+  messagingSenderId: "433645638247",
+  appId: "1:433645638247:web:fd21868b3698235c5a3ac2",
+  measurementId: "G-LV4QGYZXHH"
+};
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+  // Firebase is only initialised if the config looks real
+  const firebaseReady = firebaseConfig.apiKey !== "YOUR_API_KEY";
+  let db = null;
+  if (firebaseReady) {
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+  }
+
+  /* ============================================================
+     READ STATS FROM localStorage — FIX: no more hardcoded 128450
+  ============================================================ */
+  const username   = localStorage.getItem('playerName')  || 'PILOT';
+  const finalScore = parseInt(localStorage.getItem('finalScore') || '0', 10);
+  const totalHits  = parseInt(localStorage.getItem('totalHits')  || '0', 10);
+  const bestCombo  = parseInt(localStorage.getItem('bestCombo')  || '1',  10);
+  const avgScore   = totalHits > 0 ? Math.round(finalScore / totalHits) : 0;
+
+  document.getElementById('pilotName').textContent  = 'Pilot: ' + username;
+  document.getElementById('pilotLabel').textContent = username.toUpperCase();
+  document.getElementById('statHits').textContent   = totalHits;
+  document.getElementById('statCombo').textContent  = 'x' + bestCombo;
+  document.getElementById('statAvg').textContent    = avgScore;
+
+  /* ============================================================
+     SEEDED LEADERBOARD (used when Firebase not configured)
+  ============================================================ */
+  const SEEDED = [
+    { username: 'XERO_NULL',   score: 245900, clan: 'CYBER_KNIGHTS' },
+    { username: 'NEON_PULSE',  score: 212400, clan: 'INDIE_STRIKE' },
+    { username: 'GHOST_SHELL', score: 198200, clan: 'ROAMERS_INC' },
+    { username: 'X_CYBER_X',   score: 48200,  clan: '—' },
+    { username: 'VOID_WALKER', score: 42900,  clan: '—' },
+  ];
+
+  /* ============================================================
+     SCORE COUNT-UP ANIMATION — animates TO real score
+  ============================================================ */
+  function animateScore(targetVal) {
+    const el = document.getElementById('finalScoreDisplay');
+    const duration = Math.min(1500, targetVal / 100);
+    const startTime = performance.now();
+    function tick(now) {
+      const progress = Math.min((now - startTime) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      el.textContent = Math.floor(eased * targetVal).toLocaleString();
+      if (progress < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+  animateScore(finalScore);
+
+  /* ============================================================
+     GAME OVER TEXT FLICKER
+  ============================================================ */
+  const gameOverTitle = document.getElementById('gameOverTitle');
+  setInterval(() => {
+    if (Math.random() > 0.95) {
+      gameOverTitle.style.opacity = '0.6';
+      setTimeout(() => { gameOverTitle.style.opacity = '1'; }, 60);
+    }
+  }, 120);
+
+  /* ============================================================
+     RENDER LEADERBOARD
+  ============================================================ */
+  function renderLeaderboard(entries) {
+    const panel = document.getElementById('leaderboardPanel');
+    panel.innerHTML = '';
+
+    // Merge player score into entries
+    const all = [...entries, { username, score: finalScore, clan: 'SOLO', isYou: true }];
+    all.sort((a, b) => b.score - a.score);
+
+    const playerRank = all.findIndex(e => e.isYou) + 1;
+    document.getElementById('statRank').textContent = '#' + playerRank;
+
+    const colors  = ['#00dbe9','#ffabf3','#d1bcff'];
+    const bg      = ['rgba(0,219,233,0.1)','rgba(254,0,254,0.05)','rgba(209,188,255,0.05)'];
+    const borders = ['rgba(0,219,233,0.3)','rgba(254,0,254,0.2)','rgba(209,188,255,0.2)'];
+
+    // Top 3
+    all.slice(0, 3).forEach((p, i) => {
+      const isYou = p.isYou;
+      const div = document.createElement('div');
+      div.className = 'flex items-center gap-4 p-4 rounded-xl';
+      div.style.cssText = `background:${bg[i]};border:1px solid ${isYou ? colors[0] : borders[i]};${isYou ? 'box-shadow:0 0 15px rgba(0,219,233,0.2)' : ''}`;
+      div.innerHTML = `
+        <span class="font-score-display text-headline-md w-8" style="color:${colors[i]}">0${i+1}</span>
+        <div class="flex-grow">
+          <p class="font-label-sm text-label-sm font-bold" style="color:${isYou ? colors[0] : colors[i]}">${p.username.toUpperCase()}${isYou ? ' <span style="font-size:10px;background:rgba(0,219,233,0.2);padding:2px 6px;border-radius:4px;">YOU</span>' : ''}</p>
+          ${p.clan ? `<p style="font-size:10px;color:#b9cacb;opacity:0.6;">${p.clan}</p>` : ''}
+        </div>
+        <span class="font-score-display" style="color:${isYou ? colors[0] : colors[i]}">${p.score.toLocaleString()}</span>
+      `;
+      panel.appendChild(div);
+    });
+
+    // Separator
+    const sep = document.createElement('div');
+    sep.className = 'py-2 flex justify-center opacity-20';
+    sep.innerHTML = '<span class="material-symbols-outlined">more_vert</span>';
+    panel.appendChild(sep);
+
+    // Current user row (if not top 3)
+    if (playerRank > 3) {
+      const you = all.find(e => e.isYou);
+      const div = document.createElement('div');
+      div.className = 'flex items-center gap-4 p-4 rounded-xl border-l-4';
+      div.style.cssText = 'background:rgba(31,31,37,0.8);border:1px solid rgba(255,255,255,0.1);border-left:4px solid #00dbe9;';
+      div.innerHTML = `
+        <span class="font-score-display text-headline-md w-8 text-on-surface">${playerRank}</span>
+        <div class="flex-grow">
+          <p class="font-label-sm text-label-sm text-on-surface font-bold">${username.toUpperCase()} <span style="font-size:10px;background:rgba(0,219,233,0.2);color:#00dbe9;padding:2px 6px;border-radius:4px;">YOU</span></p>
+          <p style="font-size:10px;color:#00dbe9;">CURRENT SESSION</p>
+        </div>
+        <span class="font-score-display text-primary">${finalScore.toLocaleString()}</span>
+      `;
+      panel.appendChild(div);
+    }
+  }
+
+  // Initial render with seeded data
+  renderLeaderboard(SEEDED);
+
+  /* ============================================================
+     FIREBASE — load leaderboard + submit score
+  ============================================================ */
+  async function loadFirebaseLeaderboard() {
+    if (!db) return;
+    try {
+      document.getElementById('liveLabel').textContent = 'LOADING...';
+      const snap = await db.collection('scores').orderBy('score', 'desc').limit(10).get();
+      const entries = snap.docs.map(d => ({ username: d.data().username, score: d.data().score, clan: d.data().clan || '—' }));
+      renderLeaderboard(entries.length > 0 ? entries : SEEDED);
+      document.getElementById('liveLabel').textContent = 'LIVE';
+    } catch (e) {
+      console.warn('Firestore load error:', e);
+      document.getElementById('liveLabel').textContent = 'OFFLINE';
+    }
+  }
+  loadFirebaseLeaderboard();
+
+  /* ============================================================
+     SUBMIT SCORE — FIX: fires ONLY on button click, not on load
+  ============================================================ */
+  document.getElementById('submitBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('submitBtn');
+    const txt = document.getElementById('submitBtnText');
+
+    btn.classList.add('submitted');
+    txt.textContent = 'SUBMITTING...';
+
+    if (!db) {
+      // No Firebase — show instructions
+      setTimeout(() => {
+        txt.textContent = 'ADD FIREBASE TO SAVE ONLINE';
+        btn.classList.remove('submitted');
+        btn.classList.add('success');
+      }, 800);
+      return;
+    }
+
+    try {
+      // Check for existing score and only update if better
+      const existing = await db.collection('scores').where('username', '==', username).limit(1).get();
+      if (!existing.empty) {
+        const doc = existing.docs[0];
+        if (finalScore > doc.data().score) {
+          await doc.ref.update({ score: finalScore, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+        }
+      } else {
+        await db.collection('scores').add({
+          username,
+          score: finalScore,
+          hits: totalHits,
+          bestCombo,
+          clan: '—',
+          submittedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      }
+      txt.textContent = '✓ SCORE SAVED';
+      btn.classList.remove('submitted');
+      btn.classList.add('success');
+      loadFirebaseLeaderboard();
+    } catch (e) {
+      console.error('Score submit error:', e);
+      txt.textContent = 'ERROR — TRY AGAIN';
+      btn.classList.remove('submitted');
+    }
+  });
+</script>
+</body>
+</html>

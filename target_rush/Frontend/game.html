@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Target Rush - Gameplay Arena</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;700;800&family=JetBrains+Mono:wght@400;500;700&family=Hanken+Grotesk:wght@400;500&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+          "surface-container": "#1f1f25","on-surface-variant": "#b9cacb","tertiary-fixed": "#e9ddff","primary": "#dbfcff","on-primary-container": "#006970","on-secondary-fixed-variant": "#810081","on-error": "#690005","outline-variant": "#3b494b","secondary-fixed": "#ffd7f5","surface-tint": "#00dbe9","error-container": "#93000a","surface-variant": "#35343a","surface-container-highest": "#35343a","primary-fixed": "#7df4ff","on-error-container": "#ffdad6","surface-container-lowest": "#0e0e13","primary-container": "#00f0ff","on-tertiary-container": "#7213ff","on-tertiary-fixed-variant": "#5700c9","surface-container-low": "#1b1b20","tertiary": "#faf3ff","surface": "#131318","on-primary": "#00363a","inverse-primary": "#006970","error": "#ffb4ab","on-tertiary": "#3c0090","on-background": "#e4e1e9","on-secondary": "#5b005b","primary-fixed-dim": "#00dbe9","surface-bright": "#39383e","secondary-container": "#fe00fe","tertiary-container": "#e1d2ff","secondary": "#ffabf3","on-primary-fixed-variant": "#004f54","on-tertiary-fixed": "#23005b","on-primary-fixed": "#002022","on-secondary-container": "#500050","inverse-on-surface": "#303036","background": "#131318","on-surface": "#e4e1e9","inverse-surface": "#e4e1e9","secondary-fixed-dim": "#ffabf3","surface-dim": "#131318","outline": "#849495","on-secondary-fixed": "#380038","tertiary-fixed-dim": "#d1bcff","surface-container-high": "#2a292f"
+        },
+        "borderRadius": { "DEFAULT": "0.25rem","lg": "0.5rem","xl": "0.75rem","full": "9999px" },
+        "spacing": { "margin-desktop": "40px","container-max": "1200px","margin-mobile": "20px","gutter": "16px","unit": "8px" },
+        "fontFamily": { "body-md": ["Hanken Grotesk"],"label-sm": ["JetBrains Mono"],"score-display": ["JetBrains Mono"],"headline-md": ["Sora"],"display-lg-mobile": ["Sora"],"display-lg": ["Sora"] },
+        "fontSize": {
+          "body-md": ["16px",{"lineHeight":"24px","fontWeight":"400"}],"label-sm": ["12px",{"lineHeight":"16px","fontWeight":"500"}],"score-display": ["20px",{"lineHeight":"24px","letterSpacing":"0.05em","fontWeight":"700"}],"headline-md": ["24px",{"lineHeight":"32px","fontWeight":"700"}],"display-lg-mobile": ["36px",{"lineHeight":"42px","letterSpacing":"-0.02em","fontWeight":"800"}],"display-lg": ["48px",{"lineHeight":"56px","letterSpacing":"-0.02em","fontWeight":"800"}]
+        }
+      }
+    }
+  }
+</script>
+<style>
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  .neon-glow-primary { box-shadow: 0 0 15px rgba(0,219,233,0.4), inset 0 0 10px rgba(0,219,233,0.2); }
+  .neon-glow-secondary { box-shadow: 0 0 15px rgba(254,0,254,0.4), inset 0 0 10px rgba(254,0,254,0.2); }
+  .glass-panel { backdrop-filter: blur(12px); background: rgba(31,31,37,0.6); border: 1px solid rgba(255,255,255,0.1); border-top: 1px solid rgba(255,255,255,0.2); border-left: 1px solid rgba(255,255,255,0.2); }
+  @keyframes pulse-glow { 0%,100%{opacity:0.8;transform:scale(1)} 50%{opacity:1;transform:scale(1.08)} }
+  @keyframes target-enter { 0%{opacity:0;transform:scale(0)} 60%{transform:scale(1.15)} 100%{opacity:1;transform:scale(1)} }
+  @keyframes float-score { 0%{opacity:1;transform:translateY(0) scale(1)} 100%{opacity:0;transform:translateY(-80px) scale(1.3)} }
+  @keyframes combo-flash { 0%{transform:scale(1)} 50%{transform:scale(1.3)} 100%{transform:scale(1)} }
+  @keyframes ring-explode { 0%{transform:scale(0.5);opacity:1} 100%{transform:scale(3);opacity:0} }
+  .target-node { cursor: crosshair; position: absolute; transition: none; animation: target-enter 0.3s cubic-bezier(0.175,0.885,0.32,1.275) forwards; }
+  .target-node:active { transform: scale(0.85) !important; }
+  .float-score-popup { position: absolute; pointer-events: none; font-family: 'JetBrains Mono', monospace; font-weight: 700; animation: float-score 0.9s ease-out forwards; z-index: 100; }
+  .combo-flash { animation: combo-flash 0.3s ease-in-out; }
+  .ring-explode { position: absolute; border-radius: 50%; border: 2px solid; pointer-events: none; animation: ring-explode 0.4s ease-out forwards; z-index: 50; }
+  #timerEl.warn-yellow { color: #fbbf24 !important; text-shadow: 0 0 12px #fbbf24; }
+  #timerEl.warn-red { color: #ff6b6b !important; text-shadow: 0 0 12px #ff0000; animation: pulse-glow 0.5s infinite; }
+</style>
+</head>
+<body class="bg-surface text-on-surface font-body-md selection:bg-primary-container selection:text-on-primary-container">
+
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 right-0 z-50 flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop h-20 bg-surface/80 backdrop-blur-xl border-b border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
+  <div class="flex items-center gap-4">
+    <h1 class="font-display-lg text-display-lg-mobile md:text-display-lg text-primary drop-shadow-[0_0_8px_rgba(0,219,233,0.6)]">Target Rush</h1>
+  </div>
+  <div class="flex items-center gap-6">
+    <div class="hidden md:flex items-center gap-8">
+      <span class="text-primary font-bold drop-shadow-[0_0_5px_#00dbe9]">Play</span>
+      <span class="text-on-surface-variant font-medium hover:text-primary transition-all cursor-pointer px-3 py-1 rounded-lg" onclick="window.location.href='index.html'">Home</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <button class="p-2 rounded-full hover:bg-primary/10 transition-all active:scale-95"><span class="material-symbols-outlined text-primary-fixed-dim">history</span></button>
+      <button class="p-2 rounded-full hover:bg-primary/10 transition-all active:scale-95"><span class="material-symbols-outlined text-primary-fixed-dim">settings</span></button>
+    </div>
+  </div>
+</header>
+
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 hidden md:flex flex-col h-full w-64 z-40 bg-surface-container-low/90 backdrop-blur-2xl border-r border-white/5 shadow-2xl pt-24">
+  <div class="px-6 mb-8">
+    <h2 class="font-headline-md text-headline-md text-primary drop-shadow-[0_0_12px_#00dbe9] leading-tight">TARGET RUSH</h2>
+    <p id="playerLabel" class="font-label-sm text-label-sm text-secondary opacity-80">Pilot: —</p>
+  </div>
+  <nav class="flex flex-col flex-grow">
+    <a class="flex items-center gap-4 bg-secondary-container/20 text-secondary border-r-2 border-secondary px-6 py-4 shadow-[inset_0_0_15px_rgba(254,0,254,0.2)]" href="#"><span class="material-symbols-outlined">sports_esports</span><span class="font-label-sm text-label-sm">Play</span></a>
+    <a class="flex items-center gap-4 text-on-surface-variant px-6 py-4 opacity-70 hover:bg-white/5 hover:text-primary hover:translate-x-1 transition-all" href="#"><span class="material-symbols-outlined">leaderboard</span><span class="font-label-sm text-label-sm">Rankings</span></a>
+    <a class="flex items-center gap-4 text-on-surface-variant px-6 py-4 opacity-70 hover:bg-white/5 hover:text-primary hover:translate-x-1 transition-all" href="#"><span class="material-symbols-outlined">military_tech</span><span class="font-label-sm text-label-sm">Trophies</span></a>
+    <a class="flex items-center gap-4 text-on-surface-variant px-6 py-4 opacity-70 hover:bg-white/5 hover:text-primary hover:translate-x-1 transition-all" href="#"><span class="material-symbols-outlined">person</span><span class="font-label-sm text-label-sm">Profile</span></a>
+  </nav>
+  <div class="p-6 mt-auto">
+    <button class="w-full py-4 bg-gradient-to-r from-primary-container to-secondary-container text-on-primary font-label-sm font-bold rounded-lg shadow-[0_0_15px_rgba(0,219,233,0.4)] hover:shadow-[0_0_25px_rgba(0,219,233,0.6)] transition-all active:scale-95 uppercase tracking-widest">UPGRADE GEAR</button>
+  </div>
+</aside>
+
+<!-- Main Content Area -->
+<main class="pt-24 pb-20 md:pb-0 md:pl-64 min-h-screen flex flex-col lg:flex-row gap-gutter px-margin-mobile md:px-margin-desktop bg-surface-container-lowest">
+
+  <!-- Gameplay Arena Section -->
+  <section class="flex-grow flex flex-col gap-6">
+
+    <!-- HUD: Timer, Score, Combo -->
+    <div class="grid grid-cols-3 gap-4">
+      <div class="glass-panel rounded-xl p-4 md:p-6 flex flex-col items-center justify-center border-primary/20 neon-glow-primary">
+        <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest mb-1">Mission Timer</span>
+        <div class="font-score-display text-2xl md:text-4xl text-primary" id="timerEl">00:30.00</div>
+      </div>
+      <div class="glass-panel rounded-xl p-4 md:p-6 flex flex-col items-center justify-center border-secondary/20 neon-glow-secondary">
+        <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest mb-1">Current Score</span>
+        <div class="font-score-display text-2xl md:text-4xl text-secondary" id="scoreEl">000,000</div>
+      </div>
+      <div class="glass-panel rounded-xl p-4 md:p-6 flex flex-col items-center justify-center" id="comboPanel">
+        <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest mb-1">Combo</span>
+        <div class="font-score-display text-2xl md:text-4xl text-tertiary-fixed-dim" id="comboEl">x1</div>
+      </div>
+    </div>
+
+    <!-- The Arena Canvas -->
+    <div id="arena" class="relative flex-grow glass-panel rounded-2xl min-h-[400px] md:min-h-[600px] overflow-hidden border-white/5" style="cursor: crosshair;">
+      <!-- Background Grid -->
+      <div class="absolute inset-0 opacity-10 pointer-events-none" style="background-image: radial-gradient(circle, #00dbe9 1px, transparent 1px); background-size: 40px 40px;"></div>
+      <div class="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-primary/5 pointer-events-none"></div>
+      <!-- Arena Status -->
+      <div class="absolute top-4 right-4 flex items-center gap-2 z-10">
+        <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+        <span class="font-label-sm text-[10px] text-on-surface-variant uppercase">Arena Link: Active</span>
+      </div>
+      <!-- Miss penalty display -->
+      <div id="missMsg" class="absolute top-16 left-1/2 -translate-x-1/2 font-label-sm text-label-sm text-error opacity-0 transition-opacity pointer-events-none z-20 bg-error/10 px-4 py-2 rounded-lg">COMBO BROKEN!</div>
+    </div>
+
+    <!-- Target Legend -->
+    <div class="grid grid-cols-4 gap-2">
+      <div class="glass-panel rounded-lg p-2 flex items-center gap-2"><div class="w-4 h-4 rounded-full border-2 border-[#00dbe9] flex-shrink-0"></div><span class="font-label-sm text-[10px] text-on-surface-variant">STANDARD +100</span></div>
+      <div class="glass-panel rounded-lg p-2 flex items-center gap-2"><div class="w-4 h-4 rounded-full border-2 border-[#fe00fe] flex-shrink-0"></div><span class="font-label-sm text-[10px] text-on-surface-variant">FAST +200</span></div>
+      <div class="glass-panel rounded-lg p-2 flex items-center gap-2"><div class="w-4 h-4 rounded-full border-2 border-[#d1bcff] flex-shrink-0"></div><span class="font-label-sm text-[10px] text-on-surface-variant">BONUS +300</span></div>
+      <div class="glass-panel rounded-lg p-2 flex items-center gap-2"><div class="w-4 h-4 rounded-full border-2 border-[#fbbf24] flex-shrink-0"></div><span class="font-label-sm text-[10px] text-on-surface-variant">MEGA +500</span></div>
+    </div>
+  </section>
+
+  <!-- Right Sidebar: Leaderboard -->
+  <aside class="w-full lg:w-80 flex flex-col gap-4">
+    <div class="glass-panel rounded-2xl p-6 flex flex-col h-full border-white/5">
+      <div class="flex items-center justify-between mb-6">
+        <h3 class="font-headline-md text-headline-md text-primary text-xl">Top 10 Global</h3>
+        <span class="material-symbols-outlined text-on-surface-variant">leaderboard</span>
+      </div>
+      <div class="flex flex-col gap-2 overflow-y-auto flex-grow" id="leaderboardList">
+        <!-- Populated by JS -->
+      </div>
+      <div class="mt-4 pt-4 border-t border-white/10">
+        <div class="bg-surface-container-highest p-4 rounded-xl border border-primary/20 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <span class="font-score-display text-primary text-sm" id="playerRankEl">—</span>
+            <span class="font-label-sm text-on-surface" id="playerNameEl">YOU</span>
+          </div>
+          <span class="font-score-display text-primary text-sm" id="playerScoreEl">0</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="fixed bottom-0 w-full md:hidden flex justify-around items-center h-16 px-4 z-50 bg-surface/90 backdrop-blur-lg border-t border-primary/20 shadow-[0_-8px_20px_rgba(0,0,0,0.6)] rounded-t-xl">
+  <a class="flex flex-col items-center justify-center text-primary drop-shadow-[0_0_8px_#00dbe9] scale-110" href="#"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">home</span><span class="font-label-sm text-[10px]">Home</span></a>
+  <a class="flex flex-col items-center justify-center text-on-surface-variant/60 hover:text-primary/80 transition-all" href="#"><span class="material-symbols-outlined">bar_chart</span><span class="font-label-sm text-[10px]">Rank</span></a>
+  <a class="flex flex-col items-center justify-center text-on-surface-variant/60 hover:text-primary/80 transition-all" href="#"><span class="material-symbols-outlined">lock</span><span class="font-label-sm text-[10px]">Vault</span></a>
+  <a class="flex flex-col items-center justify-center text-on-surface-variant/60 hover:text-primary/80 transition-all" href="#"><span class="material-symbols-outlined">account_circle</span><span class="font-label-sm text-[10px]">User</span></a>
+</nav>
+
+<script>
+  /* ============================================================
+     GAME STATE
+  ============================================================ */
+  const playerName = localStorage.getItem('playerName') || 'PILOT';
+  document.getElementById('playerLabel').textContent = 'Pilot: ' + playerName;
+  document.getElementById('playerNameEl').textContent = playerName.toUpperCase().slice(0,12);
+
+  let score = 0;
+  let hits = 0;
+  let combo = 1;
+  let bestCombo = 1;
+  let comboTimer = null;
+  let gameEnded = false;
+
+  // ---- FIX: scoreEl is now properly declared ----
+  const scoreEl = document.getElementById('scoreEl');
+  const timerEl = document.getElementById('timerEl');
+  const comboEl = document.getElementById('comboEl');
+  const comboPanel = document.getElementById('comboPanel');
+  const arena = document.getElementById('arena');
+  const missMsg = document.getElementById('missMsg');
+
+  /* ============================================================
+     TARGET DEFINITIONS
+  ============================================================ */
+  const TARGET_TYPES = [
+    { type: 'standard', points: 100, size: 64, color: '#00dbe9',  border: '#00f0ff',  glow: 'rgba(0,219,233,0.5)',   chance: 0.50 },
+    { type: 'fast',     points: 200, size: 48, color: '#fe00fe',  border: '#ffabf3',  glow: 'rgba(254,0,254,0.5)',   chance: 0.28 },
+    { type: 'bonus',    points: 300, size: 56, color: '#d1bcff',  border: '#e9ddff',  glow: 'rgba(209,188,255,0.5)', chance: 0.17 },
+    { type: 'mega',     points: 500, size: 72, color: '#fbbf24',  border: '#fde68a',  glow: 'rgba(251,191,36,0.5)',  chance: 0.05 },
+  ];
+
+  function pickTargetType() {
+    const r = Math.random();
+    let acc = 0;
+    for (const t of TARGET_TYPES) { acc += t.chance; if (r < acc) return t; }
+    return TARGET_TYPES[0];
+  }
+
+  /* ============================================================
+     SPAWN TARGETS
+  ============================================================ */
+  const TOTAL_TARGETS = 6;
+  const activeTargets = new Set();
+
+  function spawnTarget() {
+    if (gameEnded) return;
+    const def = pickTargetType();
+    const arenaRect = arena.getBoundingClientRect();
+    const margin = 60;
+    const maxX = 100 - (margin / arenaRect.width * 100) - 8;
+    const maxY = 100 - (margin / arenaRect.height * 100) - 8;
+    const x = Math.random() * (maxX - 8) + 8;
+    const y = Math.random() * (maxY - 8) + 8;
+    const s = def.size;
+
+    const el = document.createElement('div');
+    el.className = 'target-node';
+    el.style.cssText = `
+      left:${x}%; top:${y}%;
+      width:${s}px; height:${s}px;
+      border-radius:50%;
+      border:2px solid ${def.border};
+      box-shadow:0 0 15px ${def.glow}, inset 0 0 10px ${def.color}33;
+      display:flex; align-items:center; justify-content:center;
+    `;
+    if (def.type === 'fast') {
+      el.style.animation = 'target-enter 0.3s cubic-bezier(0.175,0.885,0.32,1.275) forwards, pulse-glow 1.2s infinite ease-in-out';
+    } else {
+      el.style.animation = 'target-enter 0.3s cubic-bezier(0.175,0.885,0.32,1.275) forwards, pulse-glow 2s infinite ease-in-out';
+    }
+
+    const inner = document.createElement('div');
+    inner.style.cssText = `width:${s*0.5}px;height:${s*0.5}px;border-radius:50%;background:${def.color}22;display:flex;align-items:center;justify-content:center;`;
+    const dot = document.createElement('div');
+    dot.style.cssText = `width:${s*0.12}px;height:${s*0.12}px;border-radius:50%;background:${def.color};box-shadow:0 0 8px ${def.color};`;
+    inner.appendChild(dot);
+    el.appendChild(inner);
+
+    // Points label on mega
+    if (def.type === 'mega') {
+      const lbl = document.createElement('span');
+      lbl.style.cssText = 'position:absolute;bottom:-20px;left:50%;transform:translateX(-50%);font-family:JetBrains Mono,monospace;font-size:10px;color:#fbbf24;white-space:nowrap;';
+      lbl.textContent = '+500';
+      el.appendChild(lbl);
+    }
+
+    el.addEventListener('click', () => hitTarget(el, def));
+    el.dataset.type = def.type;
+    arena.appendChild(el);
+    activeTargets.add(el);
+
+    // Auto-expire: mega stays 4s, fast 1.5s, others 3s
+    const lifespan = def.type === 'mega' ? 4000 : def.type === 'fast' ? 1500 : 3000;
+    el.expiryTimeout = setTimeout(() => expireTarget(el, def), lifespan);
+  }
+
+  function expireTarget(el, def) {
+    if (!el.parentNode) return;
+    // Flicker out
+    el.style.transition = 'opacity 0.3s, transform 0.3s';
+    el.style.opacity = '0';
+    el.style.transform = 'scale(0.5)';
+    setTimeout(() => { el.remove(); activeTargets.delete(el); }, 300);
+    // Respawn
+    if (!gameEnded) setTimeout(spawnTarget, 400);
+    // Miss on fast targets breaks combo slightly
+    if (def.type === 'fast') showMissMessage();
+  }
+
+  function showMissMessage() {
+    missMsg.style.opacity = '1';
+    setTimeout(() => { missMsg.style.opacity = '0'; }, 800);
+  }
+
+  function hitTarget(el, def) {
+    if (gameEnded) return;
+    clearTimeout(el.expiryTimeout);
+    el.removeEventListener('click', () => {});
+
+    // Explosion ring
+    const ring = document.createElement('div');
+    ring.className = 'ring-explode';
+    const rect = el.getBoundingClientRect();
+    const arenaRect = arena.getBoundingClientRect();
+    const cx = rect.left - arenaRect.left + rect.width / 2;
+    const cy = rect.top - arenaRect.top + rect.height / 2;
+    ring.style.cssText = `left:${cx}px;top:${cy}px;width:${def.size}px;height:${def.size}px;margin-left:-${def.size/2}px;margin-top:-${def.size/2}px;border-color:${def.color};`;
+    arena.appendChild(ring);
+    setTimeout(() => ring.remove(), 400);
+
+    // Update combo
+    combo = Math.min(combo + 1, 10);
+    bestCombo = Math.max(bestCombo, combo);
+    clearTimeout(comboTimer);
+    comboTimer = setTimeout(() => { combo = 1; updateComboUI(); }, 2000);
+    updateComboUI();
+
+    // Calculate points
+    const earned = def.points * combo;
+    score += earned;
+    hits++;
+
+    // Update score display — FIX: scoreEl is defined above
+    scoreEl.textContent = score.toLocaleString('en-US', { minimumIntegerDigits: 6, useGrouping: true });
+    document.getElementById('playerScoreEl').textContent = score.toLocaleString();
+
+    // Float popup
+    showFloatPopup(cx, cy, `+${earned}`, def.color);
+
+    // Remove target
+    el.style.transition = 'opacity 0.15s, transform 0.15s';
+    el.style.opacity = '0';
+    el.style.transform = 'scale(0)';
+    setTimeout(() => { el.remove(); activeTargets.delete(el); }, 150);
+
+    // Respawn
+    if (!gameEnded) setTimeout(spawnTarget, 300);
+  }
+
+  function updateComboUI() {
+    comboEl.textContent = `x${combo}`;
+    comboEl.classList.add('combo-flash');
+    setTimeout(() => comboEl.classList.remove('combo-flash'), 300);
+    if (combo >= 5) {
+      comboPanel.style.boxShadow = '0 0 20px rgba(254,0,254,0.6)';
+      comboEl.style.color = '#fe00fe';
+    } else if (combo >= 3) {
+      comboPanel.style.boxShadow = '0 0 15px rgba(251,191,36,0.4)';
+      comboEl.style.color = '#fbbf24';
+    } else {
+      comboPanel.style.boxShadow = '';
+      comboEl.style.color = '#d1bcff';
+    }
+  }
+
+  function showFloatPopup(x, y, text, color) {
+    const popup = document.createElement('div');
+    popup.className = 'float-score-popup';
+    popup.style.cssText = `left:${x}px;top:${y}px;color:${color};font-size:${combo >= 5 ? '22px' : '16px'};text-shadow:0 0 10px ${color};`;
+    popup.textContent = text;
+    arena.appendChild(popup);
+    setTimeout(() => popup.remove(), 900);
+  }
+
+  /* ============================================================
+     STATIC LEADERBOARD (seeded — Firebase will replace live)
+  ============================================================ */
+  const SEEDED_PLAYERS = [
+    { username: 'X_CYBER_X',    score: 48200 },
+    { username: 'NEON_PULSE',   score: 45150 },
+    { username: 'VOID_WALKER',  score: 42900 },
+    { username: 'GLITCH_KID',   score: 38000 },
+    { username: 'STORM_CMD',    score: 35600 },
+    { username: 'PIXEL_REBEL',  score: 33200 },
+    { username: 'QUANTUM_HIT',  score: 30800 },
+    { username: 'HYPER_ZONE',   score: 28400 },
+    { username: 'DATA_GHOST',   score: 26000 },
+    { username: 'APEX_RUSH',    score: 23600 },
+  ];
+
+  function renderLeaderboard(currentScore) {
+    const list = document.getElementById('leaderboardList');
+    list.innerHTML = '';
+    const top = SEEDED_PLAYERS.slice(0, 3);
+    const colors = ['#00dbe9', '#ffabf3', '#d1bcff'];
+    const bgColors = ['rgba(0,219,233,0.1)', 'rgba(254,0,254,0.05)', 'rgba(209,188,255,0.05)'];
+    const borderColors = ['rgba(0,219,233,0.3)', 'rgba(254,0,254,0.2)', 'rgba(209,188,255,0.2)'];
+
+    top.forEach((p, i) => {
+      const div = document.createElement('div');
+      div.className = 'flex items-center justify-between p-3 rounded-lg transition-colors';
+      div.style.cssText = `background:${bgColors[i]};border:1px solid ${borderColors[i]};`;
+      div.innerHTML = `
+        <div class="flex items-center gap-3">
+          <span class="font-score-display text-sm" style="color:${colors[i]}">0${i+1}</span>
+          <span class="font-label-sm text-on-surface font-bold">${p.username}</span>
+        </div>
+        <span class="font-score-display text-sm" style="color:${colors[i]}">${p.score.toLocaleString()}</span>
+      `;
+      list.appendChild(div);
+    });
+
+    // Remaining
+    SEEDED_PLAYERS.slice(3).forEach((p, i) => {
+      const div = document.createElement('div');
+      div.className = 'flex items-center justify-between p-3 rounded-lg hover:bg-white/5 transition-colors border border-transparent';
+      div.innerHTML = `
+        <div class="flex items-center gap-3">
+          <span class="font-score-display text-on-surface-variant/50 text-sm">0${i+4}</span>
+          <span class="font-label-sm text-on-surface-variant">${p.username}</span>
+        </div>
+        <span class="font-score-display text-on-surface-variant/80 text-sm">${p.score.toLocaleString()}</span>
+      `;
+      list.appendChild(div);
+    });
+
+    // Player rank
+    const all = [...SEEDED_PLAYERS, { username: playerName, score: currentScore }];
+    all.sort((a, b) => b.score - a.score);
+    const rank = all.findIndex(p => p.username === playerName) + 1;
+    document.getElementById('playerRankEl').textContent = `#${rank}`;
+  }
+
+  renderLeaderboard(0);
+
+  /* ============================================================
+     TIMER — FIX: 30 seconds properly counted
+  ============================================================ */
+  let timeCs = 3000; // 30.00 seconds in centiseconds
+
+  const countdown = setInterval(() => {
+    if (gameEnded) return;
+    if (timeCs <= 0) {
+      clearInterval(countdown);
+      endGame();
+      return;
+    }
+    timeCs--;
+    const secs = Math.floor(timeCs / 100);
+    const cs   = timeCs % 100;
+    timerEl.textContent = `00:${secs.toString().padStart(2,'0')}.${cs.toString().padStart(2,'0')}`;
+
+    if (timeCs <= 500 && timeCs > 0) {
+      timerEl.classList.remove('warn-yellow');
+      timerEl.classList.add('warn-red');
+    } else if (timeCs <= 1000) {
+      timerEl.classList.remove('warn-red');
+      timerEl.classList.add('warn-yellow');
+    }
+
+    if (timeCs % 20 === 0) renderLeaderboard(score);
+  }, 10);
+
+  /* ============================================================
+     END GAME
+  ============================================================ */
+  function endGame() {
+    gameEnded = true;
+    clearInterval(countdown);
+    clearTimeout(comboTimer);
+    timerEl.textContent = '00:00.00';
+    timerEl.classList.add('warn-red');
+
+    // Remove all targets
+    activeTargets.forEach(el => { clearTimeout(el.expiryTimeout); el.remove(); });
+    activeTargets.clear();
+
+    // Save stats to localStorage
+    localStorage.setItem('finalScore', score);
+    localStorage.setItem('totalHits', hits);
+    localStorage.setItem('bestCombo', bestCombo);
+
+    // Brief flash then redirect
+    setTimeout(() => { window.location.href = 'gameover.html'; }, 600);
+  }
+
+  /* ============================================================
+     INIT — spawn initial targets
+  ============================================================ */
+  function init() {
+    for (let i = 0; i < TOTAL_TARGETS; i++) {
+      setTimeout(spawnTarget, i * 150);
+    }
+  }
+  init();
+</script>
+</body>
+</html>

@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Target Rush - Elite Arcade Experience</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;700;800&family=JetBrains+Mono:wght@400;500;700&family=Hanken+Grotesk:wght@400;500&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+          "surface-container": "#1f1f25","on-surface-variant": "#b9cacb","tertiary-fixed": "#e9ddff","primary": "#dbfcff","on-primary-container": "#006970","on-secondary-fixed-variant": "#810081","on-error": "#690005","outline-variant": "#3b494b","secondary-fixed": "#ffd7f5","surface-tint": "#00dbe9","error-container": "#93000a","surface-variant": "#35343a","surface-container-highest": "#35343a","primary-fixed": "#7df4ff","on-error-container": "#ffdad6","surface-container-lowest": "#0e0e13","primary-container": "#00f0ff","on-tertiary-container": "#7213ff","on-tertiary-fixed-variant": "#5700c9","surface-container-low": "#1b1b20","tertiary": "#faf3ff","surface": "#131318","on-primary": "#00363a","inverse-primary": "#006970","error": "#ffb4ab","on-tertiary": "#3c0090","on-background": "#e4e1e9","on-secondary": "#5b005b","primary-fixed-dim": "#00dbe9","surface-bright": "#39383e","secondary-container": "#fe00fe","tertiary-container": "#e1d2ff","secondary": "#ffabf3","on-primary-fixed-variant": "#004f54","on-tertiary-fixed": "#23005b","on-primary-fixed": "#002022","on-secondary-container": "#500050","inverse-on-surface": "#303036","background": "#131318","on-surface": "#e4e1e9","inverse-surface": "#e4e1e9","secondary-fixed-dim": "#ffabf3","surface-dim": "#131318","outline": "#849495","on-secondary-fixed": "#380038","tertiary-fixed-dim": "#d1bcff","surface-container-high": "#2a292f"
+        },
+        "borderRadius": { "DEFAULT": "0.25rem","lg": "0.5rem","xl": "0.75rem","full": "9999px" },
+        "spacing": { "margin-desktop": "40px","container-max": "1200px","margin-mobile": "20px","gutter": "16px","unit": "8px" },
+        "fontFamily": { "body-md": ["Hanken Grotesk"],"label-sm": ["JetBrains Mono"],"score-display": ["JetBrains Mono"],"headline-md": ["Sora"],"display-lg-mobile": ["Sora"],"display-lg": ["Sora"] },
+        "fontSize": {
+          "body-md": ["16px", {"lineHeight": "24px","fontWeight": "400"}],"label-sm": ["12px", {"lineHeight": "16px","fontWeight": "500"}],"score-display": ["20px", {"lineHeight": "24px","letterSpacing": "0.05em","fontWeight": "700"}],"headline-md": ["24px", {"lineHeight": "32px","fontWeight": "700"}],"display-lg-mobile": ["36px", {"lineHeight": "42px","letterSpacing": "-0.02em","fontWeight": "800"}],"display-lg": ["48px", {"lineHeight": "56px","letterSpacing": "-0.02em","fontWeight": "800"}]
+        }
+      }
+    }
+  }
+</script>
+<style>
+  body { background-color: #0A0A0F; background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.05) 1px, transparent 0); background-size: 40px 40px; }
+  .neon-glow-primary { box-shadow: 0 0 15px rgba(0, 219, 233, 0.4); }
+  .neon-glow-secondary { box-shadow: 0 0 15px rgba(254, 0, 254, 0.4); }
+  .glass-panel { backdrop-filter: blur(12px); background: rgba(31, 31, 37, 0.4); border: 1px solid rgba(255, 255, 255, 0.1); border-top: 1px solid rgba(255, 255, 255, 0.2); border-left: 1px solid rgba(255, 255, 255, 0.2); }
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  .neon-underline { position: relative; }
+  .neon-underline::after { content: ''; position: absolute; bottom: -2px; left: 50%; width: 0; height: 2px; background: #00dbe9; box-shadow: 0 0 8px #00dbe9; transition: all 0.3s ease; transform: translateX(-50%); }
+  .neon-underline:focus-within::after { width: 100%; }
+  #errorMsg { display: none; }
+</style>
+</head>
+<body class="font-body-md text-on-background selection:bg-secondary-container selection:text-white">
+
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 right-0 z-50 h-20 flex justify-between items-center px-margin-mobile md:px-margin-desktop bg-surface/80 backdrop-blur-xl border-b border-outline-variant/30 shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
+  <div class="font-display-lg text-display-lg-mobile md:text-display-lg text-primary drop-shadow-[0_0_8px_rgba(0,219,233,0.6)]">Target Rush</div>
+  <div class="flex items-center gap-6">
+    <button class="material-symbols-outlined text-primary-fixed-dim hover:bg-primary/10 transition-all duration-300 p-2 rounded-full active:scale-95">history</button>
+    <button class="material-symbols-outlined text-primary-fixed-dim hover:bg-primary/10 transition-all duration-300 p-2 rounded-full active:scale-95">settings</button>
+  </div>
+</header>
+
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 hidden md:flex flex-col h-full w-64 z-40 bg-surface-container-low/90 backdrop-blur-2xl border-r border-white/5 shadow-2xl pt-24">
+  <div class="px-6 mb-8">
+    <h2 class="font-headline-md text-headline-md text-primary mb-1">TARGET RUSH</h2>
+    <p class="font-label-sm text-label-sm text-on-surface-variant opacity-70">Elite Tier: Rank 42</p>
+  </div>
+  <nav class="flex-1">
+    <a class="flex items-center gap-4 bg-secondary-container/20 text-secondary border-r-2 border-secondary px-6 py-4 shadow-[inset_0_0_15px_rgba(254,0,254,0.2)] transition-all duration-200 translate-x-1" href="#">
+      <span class="material-symbols-outlined">sports_esports</span>
+      <span class="font-label-sm text-label-sm uppercase tracking-wider">Play</span>
+    </a>
+    <a class="flex items-center gap-4 text-on-surface-variant px-6 py-4 opacity-70 hover:bg-white/5 hover:text-primary transition-colors" href="#">
+      <span class="material-symbols-outlined">leaderboard</span>
+      <span class="font-label-sm text-label-sm uppercase tracking-wider">Rankings</span>
+    </a>
+    <a class="flex items-center gap-4 text-on-surface-variant px-6 py-4 opacity-70 hover:bg-white/5 hover:text-primary transition-colors" href="#">
+      <span class="material-symbols-outlined">military_tech</span>
+      <span class="font-label-sm text-label-sm uppercase tracking-wider">Trophies</span>
+    </a>
+    <a class="flex items-center gap-4 text-on-surface-variant px-6 py-4 opacity-70 hover:bg-white/5 hover:text-primary transition-colors" href="#">
+      <span class="material-symbols-outlined">person</span>
+      <span class="font-label-sm text-label-sm uppercase tracking-wider">Profile</span>
+    </a>
+  </nav>
+  <div class="p-6">
+    <button class="w-full py-4 bg-gradient-to-r from-secondary-container to-secondary text-on-secondary font-label-sm text-label-sm rounded-lg neon-glow-secondary hover:brightness-110 transition-all uppercase tracking-widest font-bold">UPGRADE GEAR</button>
+  </div>
+</aside>
+
+<!-- Main Content Canvas -->
+<main class="md:ml-64 pt-24 min-h-screen relative px-margin-mobile md:px-margin-desktop pb-20 overflow-hidden">
+
+  <!-- Hero Section -->
+  <section class="flex flex-col items-center justify-center min-h-[819px] text-center gap-12 relative z-10">
+    <div class="animate-pulse absolute -top-20 -left-20 w-96 h-96 bg-primary/10 rounded-full blur-[120px]"></div>
+    <div class="absolute -bottom-20 -right-20 w-96 h-96 bg-secondary-container/10 rounded-full blur-[120px]"></div>
+    <div class="space-y-4">
+      <h1 class="font-display-lg text-display-lg-mobile md:text-display-lg text-primary drop-shadow-[0_0_15px_#00dbe9] tracking-tighter">
+        NEON PRECISION<br/>
+        <span class="text-secondary drop-shadow-[0_0_15px_#fe00fe]">ELITE SPEED</span>
+      </h1>
+      <p class="font-body-md text-body-md text-on-surface-variant max-w-xl mx-auto opacity-80">
+        Enter the high-frequency combat zone where reflexes define your legacy. Master the art of the perfect strike in a retro-futuristic digital void.
+      </p>
+    </div>
+
+    <!-- Login Glass Card -->
+    <div class="glass-panel w-full max-w-md p-8 md:p-12 rounded-xl shadow-2xl animate-in fade-in slide-in-from-bottom-8 duration-700">
+      <div class="space-y-8">
+        <div class="space-y-2 text-left">
+          <label class="font-label-sm text-label-sm text-primary uppercase tracking-widest">Pilot Identity</label>
+          <div class="neon-underline">
+            <input class="w-full bg-surface-container-lowest/60 border-none text-white font-score-display text-score-display p-4 focus:ring-0 placeholder:text-white/20 transition-all" placeholder="ENTER USERNAME..." id="username" type="text"/>
+          </div>
+          <p id="errorMsg" class="font-label-sm text-label-sm text-error mt-1">⚠ Username required to enter the arena</p>
+        </div>
+        <button id="startBtn" class="w-full group relative overflow-hidden bg-gradient-to-r from-primary-container to-surface-tint py-5 rounded-lg font-score-display text-score-display text-on-primary-fixed uppercase tracking-[0.2em] neon-glow-primary hover:scale-[1.02] active:scale-95 transition-all">
+          <span class="relative z-10">START GAME</span>
+          <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+        </button>
+        <div class="flex justify-between items-center opacity-60">
+          <span class="h-[1px] flex-1 bg-outline-variant/30"></span>
+          <span class="px-4 font-label-sm text-label-sm text-on-surface-variant">OR CONNECT</span>
+          <span class="h-[1px] flex-1 bg-outline-variant/30"></span>
+        </div>
+        <div class="flex gap-4">
+          <button class="flex-1 py-3 glass-panel rounded-lg flex justify-center items-center hover:bg-white/10 transition-all">
+            <span class="material-symbols-outlined text-secondary">cloud</span>
+          </button>
+          <button class="flex-1 py-3 glass-panel rounded-lg flex justify-center items-center hover:bg-white/10 transition-all">
+            <span class="material-symbols-outlined text-primary">gamepad</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How to Play Section -->
+  <section class="py-24 max-w-container-max mx-auto">
+    <div class="flex flex-col md:flex-row gap-gutter">
+      <div class="flex-1 glass-panel p-8 rounded-xl border-l-4 border-l-primary relative overflow-hidden group">
+        <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><span class="material-symbols-outlined text-8xl" style="font-size: 8rem;">target</span></div>
+        <div class="relative z-10 space-y-4">
+          <div class="w-12 h-12 rounded-lg bg-primary/20 flex items-center justify-center"><span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">ads_click</span></div>
+          <h3 class="font-headline-md text-headline-md text-white">Target Sync</h3>
+          <p class="font-body-md text-body-md text-on-surface-variant">Eliminate glowing nodes with surgical precision. The faster you strike, the higher the combo multiplier.</p>
+        </div>
+      </div>
+      <div class="flex-1 glass-panel p-8 rounded-xl border-l-4 border-l-secondary relative overflow-hidden group">
+        <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><span class="material-symbols-outlined text-8xl" style="font-size: 8rem;">bolt</span></div>
+        <div class="relative z-10 space-y-4">
+          <div class="w-12 h-12 rounded-lg bg-secondary/20 flex items-center justify-center"><span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">speed</span></div>
+          <h3 class="font-headline-md text-headline-md text-white">Reflex Rush</h3>
+          <p class="font-body-md text-body-md text-on-surface-variant">React to patterns in microseconds. Performance is measured in frames; glory is measured in scores.</p>
+        </div>
+      </div>
+      <div class="flex-1 glass-panel p-8 rounded-xl border-l-4 border-l-tertiary-fixed-dim relative overflow-hidden group">
+        <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><span class="material-symbols-outlined text-8xl" style="font-size: 8rem;">military_tech</span></div>
+        <div class="relative z-10 space-y-4">
+          <div class="w-12 h-12 rounded-lg bg-tertiary/20 flex items-center justify-center"><span class="material-symbols-outlined text-tertiary-fixed-dim" style="font-variation-settings: 'FILL' 1;">trophy</span></div>
+          <h3 class="font-headline-md text-headline-md text-white">Global Rank</h3>
+          <p class="font-body-md text-body-md text-on-surface-variant">Ascend the leaderboard and claim your spot among the elite. Weekly tournaments offer exclusive gear.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats Card -->
+  <section class="max-w-container-max mx-auto py-12">
+    <div class="glass-panel p-10 rounded-xl relative overflow-hidden flex flex-col md:flex-row items-center gap-12">
+      <div class="flex-shrink-0 relative">
+        <div class="absolute inset-0 bg-primary/20 blur-3xl rounded-full"></div>
+        <img alt="Retro Gaming Console" class="w-48 h-48 rounded-full object-cover border-4 border-primary relative z-10 neon-glow-primary" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAOB4Jtb92sao0yLAQmY1ej5sNOze_6wnWIV1EfM7EQYfjeuZKzwS0KaiJIEdcaECPA1CCNsW_tFimu-2kJl8GlZN_62ecBV2QaYW-iW8f4Vs4BpM1WxFskU9n1dZq1rYrD12nmLLza_PsLQXC_HYYm6lENCFar7iSHv8-2iijjvTmvg34_M7iYDA_M7kNqyNG7blcwIsEBU-m3wQVxVzvTbBclklwT4GHB23W8vXWbVuy9TydGBFHizVtr_1TDhJmiNPOCMq3cZjf3"/>
+      </div>
+      <div class="space-y-6 text-center md:text-left">
+        <h4 class="font-headline-md text-headline-md text-white">Global Activity Feed</h4>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div class="space-y-1"><p class="font-label-sm text-label-sm text-on-surface-variant uppercase">Active Players</p><p class="font-score-display text-score-display text-primary" id="activePlayers">12,482</p></div>
+          <div class="space-y-1"><p class="font-label-sm text-label-sm text-on-surface-variant uppercase">Current Pool</p><p class="font-score-display text-score-display text-secondary">8.2M CR</p></div>
+          <div class="space-y-1"><p class="font-label-sm text-label-sm text-on-surface-variant uppercase">Daily Peaks</p><p class="font-score-display text-score-display text-primary">98.4%</p></div>
+          <div class="space-y-1"><p class="font-label-sm text-label-sm text-on-surface-variant uppercase">Server Load</p><p class="font-score-display text-score-display text-tertiary-fixed-dim">OPTIMAL</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="fixed bottom-0 w-full md:hidden flex justify-around items-center h-16 px-4 z-50 bg-surface/90 backdrop-blur-lg border-t border-primary/20 shadow-[0_-8px_20px_rgba(0,0,0,0.6)]">
+  <a class="flex flex-col items-center justify-center text-primary drop-shadow-[0_0_8px_#00dbe9] scale-110" href="#"><span class="material-symbols-outlined">home</span><span class="font-label-sm text-label-sm">Home</span></a>
+  <a class="flex flex-col items-center justify-center text-on-surface-variant/60 hover:text-primary/80 transition-all" href="#"><span class="material-symbols-outlined">bar_chart</span><span class="font-label-sm text-label-sm">Rank</span></a>
+  <a class="flex flex-col items-center justify-center text-on-surface-variant/60 hover:text-primary/80 transition-all" href="#"><span class="material-symbols-outlined">lock</span><span class="font-label-sm text-label-sm">Vault</span></a>
+  <a class="flex flex-col items-center justify-center text-on-surface-variant/60 hover:text-primary/80 transition-all" href="#"><span class="material-symbols-outlined">account_circle</span><span class="font-label-sm text-label-sm">User</span></a>
+</nav>
+
+<script>
+  // Grid pulse effect
+  const body = document.body;
+  let opacity = 0.05, increasing = true;
+  setInterval(() => {
+    if (increasing) { opacity += 0.005; if (opacity >= 0.08) increasing = false; }
+    else { opacity -= 0.005; if (opacity <= 0.05) increasing = true; }
+    body.style.backgroundImage = `radial-gradient(circle at 2px 2px, rgba(255,255,255,${opacity}) 1px, transparent 0)`;
+  }, 100);
+
+  // Glass panel micro-interactions
+  document.querySelectorAll('.glass-panel').forEach(card => {
+    card.addEventListener('mousemove', (e) => {
+      const rect = card.getBoundingClientRect();
+      card.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
+      card.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
+    });
+  });
+
+  // Start button
+  document.getElementById('startBtn').addEventListener('click', () => {
+    const username = document.getElementById('username').value.trim();
+    const errorMsg = document.getElementById('errorMsg');
+    if (!username) {
+      errorMsg.style.display = 'block';
+      document.getElementById('username').focus();
+      return;
+    }
+    errorMsg.style.display = 'none';
+    localStorage.setItem('playerName', username);
+    window.location.href = 'game.html';
+  });
+
+  document.getElementById('username').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') document.getElementById('startBtn').click();
+  });
+</script>
+</body>
+</html>
