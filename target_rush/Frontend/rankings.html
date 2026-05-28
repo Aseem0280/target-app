@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Target Rush - Rankings</title>
+<script src="js/tailwind-config.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;700;800&family=JetBrains+Mono:wght@400;500;700&family=Hanken+Grotesk:wght@400;500&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="js/firebase-init.js"></script>
+
+<style>
+  body{background-color:#0A0A0F;background-image:radial-gradient(circle at 2px 2px,rgba(255,255,255,0.04) 1px,transparent 0);background-size:40px 40px;}
+  .material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;}
+  .glass-panel{backdrop-filter:blur(12px);background:rgba(31,31,37,0.5);border:1px solid rgba(255,255,255,0.1);}
+  .neon-glow-primary{box-shadow:0 0 15px rgba(0,219,233,0.3);}
+  .nav-active{background:rgba(254,0,254,0.2);color:#ffabf3;border-right:2px solid #fe00fe;}
+  .rank-row{transition:background 0.15s;}
+  .rank-row:hover{background:rgba(255,255,255,0.04);}
+  .tab-active{background:rgba(0,219,233,0.15);color:#00dbe9;border-color:rgba(0,219,233,0.4);}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .spinner{animation:spin 0.8s linear infinite;}
+</style>
+</head>
+<body class="font-body-md text-on-background">
+
+<header class="fixed top-0 left-0 right-0 z-50 h-20 flex justify-between items-center px-4 md:px-10 bg-surface/80 backdrop-blur-xl border-b border-outline-variant/30 shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
+  <a href="index.html" class="font-display-lg text-3xl md:text-5xl text-primary drop-shadow-[0_0_8px_rgba(0,219,233,0.6)]">Target Rush</a>
+  <div class="flex items-center gap-3">
+    <a href="index.html" class="hidden md:block font-label-sm text-label-sm text-on-surface-variant hover:text-primary px-3 py-1 rounded transition-all">Play</a>
+    <a href="profile.html" class="hidden md:block font-label-sm text-label-sm text-on-surface-variant hover:text-primary px-3 py-1 rounded transition-all">Profile</a>
+    <button onclick="loadLeaderboard()" class="material-symbols-outlined text-primary-fixed-dim hover:text-primary hover:bg-primary/10 transition-all p-2 rounded-full" title="Refresh">refresh</button>
+  </div>
+</header>
+
+<aside class="fixed left-0 top-0 hidden md:flex flex-col h-full w-64 z-40 bg-surface-container-low/90 backdrop-blur-2xl border-r border-white/5 shadow-2xl pt-24">
+  <div class="px-6 mb-8">
+    <h2 class="font-headline-md text-headline-md text-primary mb-1">TARGET RUSH</h2>
+    <p class="font-label-sm text-label-sm text-on-surface-variant opacity-70" id="sideUser">—</p>
+  </div>
+  <nav class="flex-1 flex flex-col">
+    <a class="flex items-center gap-4 text-on-surface-variant px-6 py-4 opacity-70 hover:bg-white/5 hover:text-primary hover:translate-x-1 transition-all" href="index.html"><span class="material-symbols-outlined">sports_esports</span><span class="font-label-sm text-label-sm">Play</span></a>
+    <a class="nav-active flex items-center gap-4 px-6 py-4" href="rankings.html"><span class="material-symbols-outlined">leaderboard</span><span class="font-label-sm text-label-sm">Rankings</span></a>
+    <a class="flex items-center gap-4 text-on-surface-variant px-6 py-4 opacity-70 hover:bg-white/5 hover:text-primary hover:translate-x-1 transition-all" href="trophies.html"><span class="material-symbols-outlined">military_tech</span><span class="font-label-sm text-label-sm">Trophies</span></a>
+    <a class="flex items-center gap-4 text-on-surface-variant px-6 py-4 opacity-70 hover:bg-white/5 hover:text-primary hover:translate-x-1 transition-all" href="profile.html"><span class="material-symbols-outlined">person</span><span class="font-label-sm text-label-sm">Profile</span></a>
+  </nav>
+  <div class="p-6">
+    <a href="game.html" class="block w-full py-4 text-center bg-gradient-to-r from-primary-container to-surface-tint text-on-primary font-label-sm text-label-sm rounded-lg neon-glow-primary hover:scale-[1.02] transition-all uppercase tracking-widest font-bold">PLAY NOW</a>
+  </div>
+</aside>
+
+<main class="md:ml-64 pt-24 pb-24 md:pb-8 min-h-screen px-4 md:px-10">
+  <div class="max-w-3xl mx-auto">
+
+    <!-- Header -->
+    <div class="mb-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div>
+        <h1 class="font-display-lg text-3xl md:text-5xl text-primary drop-shadow-[0_0_15px_#00dbe9]">RANKINGS</h1>
+        <p class="font-label-sm text-label-sm text-on-surface-variant opacity-70 mt-1">Global Leaderboard · <span id="totalPlayers">—</span> players</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+        <span class="font-label-sm text-label-sm text-on-surface-variant" id="lastUpdated">Loading...</span>
+      </div>
+    </div>
+
+    <!-- Search bar -->
+    <div class="glass-panel rounded-xl p-3 flex items-center gap-3 mb-6">
+      <span class="material-symbols-outlined text-on-surface-variant text-xl">search</span>
+      <input id="searchInput" type="text" placeholder="Search pilot..." class="flex-1 bg-transparent border-none outline-none text-white font-score-display text-sm placeholder:text-white/20"/>
+      <button onclick="document.getElementById('searchInput').value='';filterTable()" class="material-symbols-outlined text-on-surface-variant/40 hover:text-on-surface-variant transition-colors text-sm">close</button>
+    </div>
+
+    <!-- Your rank card -->
+    <div class="glass-panel rounded-xl p-4 mb-6 border border-primary/20 neon-glow-primary" id="yourRankCard" style="display:none">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <span class="font-score-display text-primary text-xl" id="yourRankNum">—</span>
+          <div>
+            <p class="font-label-sm text-sm font-bold text-white" id="yourRankName">—</p>
+            <p class="font-label-sm text-[10px] text-primary">YOUR POSITION</p>
+          </div>
+        </div>
+        <span class="font-score-display text-primary text-xl" id="yourRankScore">—</span>
+      </div>
+    </div>
+
+    <!-- Top 3 podium -->
+    <div class="grid grid-cols-3 gap-3 mb-8" id="podium"></div>
+
+    <!-- Full table -->
+    <div class="glass-panel rounded-2xl overflow-hidden">
+      <div class="p-4 border-b border-white/10 flex items-center justify-between">
+        <h3 class="font-headline-md text-primary text-lg">Full Leaderboard</h3>
+        <div class="flex items-center gap-2" id="spinner" style="display:none">
+          <span class="material-symbols-outlined text-primary text-sm spinner">autorenew</span>
+          <span class="font-label-sm text-[10px] text-on-surface-variant">Loading...</span>
+        </div>
+      </div>
+      <div id="tableBody" class="divide-y divide-white/5">
+        <!-- rows injected by JS -->
+      </div>
+      <div id="emptyState" class="p-12 text-center" style="display:none">
+        <span class="material-symbols-outlined text-on-surface-variant/30 text-6xl block mb-3">leaderboard</span>
+        <p class="font-label-sm text-label-sm text-on-surface-variant opacity-50">No scores found. Be the first to play!</p>
+        <a href="game.html" class="inline-block mt-4 px-6 py-2 bg-primary/20 text-primary border border-primary/30 rounded-lg font-label-sm text-label-sm hover:bg-primary/30 transition-all">PLAY NOW</a>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<nav class="fixed bottom-0 w-full md:hidden flex justify-around items-center h-16 px-4 z-50 bg-surface/90 backdrop-blur-lg border-t border-primary/20">
+  <a class="flex flex-col items-center text-on-surface-variant/60" href="index.html"><span class="material-symbols-outlined">home</span><span class="font-label-sm text-[10px]">Home</span></a>
+  <a class="flex flex-col items-center text-primary scale-110" href="rankings.html"><span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">bar_chart</span><span class="font-label-sm text-[10px]">Rank</span></a>
+  <a class="flex flex-col items-center text-on-surface-variant/60" href="trophies.html"><span class="material-symbols-outlined">military_tech</span><span class="font-label-sm text-[10px]">Trophies</span></a>
+  <a class="flex flex-col items-center text-on-surface-variant/60" href="profile.html"><span class="material-symbols-outlined">account_circle</span><span class="font-label-sm text-[10px]">Profile</span></a>
+</nav>
+
+<script>
+const me = localStorage.getItem('playerName') || '';
+document.getElementById('sideUser').textContent = me ? 'Pilot: '+me : '—';
+
+const SEEDED=[
+  {rank:1,username:'XERO_NULL',score:245900,hits:489,bestCombo:10,clan:'CYBER_KNIGHTS'},
+  {rank:2,username:'NEON_PULSE',score:212400,hits:424,bestCombo:10,clan:'INDIE_STRIKE'},
+  {rank:3,username:'GHOST_SHELL',score:198200,hits:396,bestCombo:9,clan:'ROAMERS_INC'},
+  {rank:4,username:'X_CYBER_X',score:48200,hits:96,bestCombo:8,clan:'—'},
+  {rank:5,username:'VOID_WALKER',score:45150,hits:90,bestCombo:7,clan:'—'},
+  {rank:6,username:'GLITCH_KID',score:42900,hits:85,bestCombo:7,clan:'—'},
+  {rank:7,username:'STORM_CMD',score:38000,hits:76,bestCombo:6,clan:'—'},
+  {rank:8,username:'PIXEL_REBEL',score:35600,hits:71,bestCombo:6,clan:'—'},
+  {rank:9,username:'QUANTUM_HIT',score:33200,hits:66,bestCombo:5,clan:'—'},
+  {rank:10,username:'HYPER_ZONE',score:30800,hits:61,bestCombo:5,clan:'—'},
+];
+
+let allEntries=[];
+
+function renderPodium(entries){
+  const pod=document.getElementById('podium');pod.innerHTML='';
+  const top=entries.slice(0,3);
+  const cols=['#00dbe9','#ffabf3','#d1bcff'];
+  const bg=['rgba(0,219,233,0.12)','rgba(254,0,254,0.08)','rgba(209,188,255,0.08)'];
+  const icons=['🥇','🥈','🥉'];
+  const order=[1,0,2]; // 2nd, 1st, 3rd visual order
+  order.forEach(i=>{
+    if(!top[i])return;
+    const p=top[i];
+    const isYou=p.username.toUpperCase()===me.toUpperCase();
+    const d=document.createElement('div');
+    d.className='glass-panel rounded-xl p-4 text-center relative';
+    d.style=`background:${bg[i]};border:1px solid ${cols[i]}44;${i===0?'transform:scale(1.05);border-color:'+cols[i]+'88;':''}`;
+    d.innerHTML=`<div class="text-2xl mb-1">${icons[i]}</div><div class="font-score-display text-3xl mb-1" style="color:${cols[i]}">#${i+1}</div><div class="font-label-sm text-xs font-bold truncate" style="color:${cols[i]}">${p.username.toUpperCase()}${isYou?'<br><span style="font-size:9px;background:rgba(0,219,233,0.2);padding:1px 4px;border-radius:3px;color:#00dbe9;">YOU</span>':''}</div><div class="font-score-display text-sm mt-2" style="color:${cols[i]}">${p.score.toLocaleString()}</div>`;
+    pod.appendChild(d);
+  });
+}
+
+function renderTable(entries){
+  const body=document.getElementById('tableBody');body.innerHTML='';
+  if(!entries.length){document.getElementById('emptyState').style.display='block';return;}
+  document.getElementById('emptyState').style.display='none';
+  entries.forEach((p,idx)=>{
+    const isYou=p.username.toUpperCase()===me.toUpperCase();
+    const rankNum=p.rank||idx+1;
+    const medal=rankNum===1?'🥇':rankNum===2?'🥈':rankNum===3?'🥉':null;
+    const d=document.createElement('div');
+    d.className=`rank-row flex items-center gap-3 px-4 py-3 ${isYou?'bg-primary/8 border-l-4 border-primary':''}`;
+    d.dataset.name=p.username.toLowerCase();
+    d.innerHTML=`
+      <span class="font-score-display text-sm w-8 text-center ${rankNum<=3?'text-on-surface':'text-on-surface-variant/40'}">${medal||'#'+rankNum}</span>
+      <div class="flex-grow min-w-0">
+        <span class="font-label-sm text-sm font-bold ${isYou?'text-primary':'text-on-surface'} truncate block">${p.username.toUpperCase()}${isYou?' <span style="font-size:9px;background:rgba(0,219,233,0.15);color:#00dbe9;padding:1px 5px;border-radius:3px;">YOU</span>':''}</span>
+        <span class="font-label-sm text-[10px] text-on-surface-variant opacity-60">${p.clan||'—'} · ${p.hits||0} hits · ×${p.bestCombo||1} combo</span>
+      </div>
+      <span class="font-score-display text-sm ${isYou?'text-primary':rankNum<=3?'text-on-surface':'text-on-surface-variant/70'}">${p.score.toLocaleString()}</span>
+    `;
+    body.appendChild(d);
+  });
+}
+
+function filterTable(){
+  const q=document.getElementById('searchInput').value.toLowerCase();
+  document.querySelectorAll('.rank-row').forEach(row=>{
+    row.style.display=row.dataset.name.includes(q)?'':'none';
+  });
+}
+document.getElementById('searchInput').addEventListener('input',filterTable);
+
+async function loadLeaderboard(){
+  document.getElementById('spinner').style.display='flex';
+  document.getElementById('lastUpdated').textContent='Refreshing...';
+  let entries=null;
+  try{entries=await fetchLeaderboard(100);}catch(e){}
+  if(!entries||entries.length===0){
+    entries=SEEDED;
+    document.getElementById('lastUpdated').textContent='Seeded data';
+  }else{
+    document.getElementById('lastUpdated').textContent='Live · just now';
+  }
+  document.getElementById('totalPlayers').textContent=entries.length;
+  allEntries=entries;
+  renderPodium(entries);
+  renderTable(entries);
+  // Your rank card
+  if(me){
+    const myEntry=entries.find(e=>e.username.toUpperCase()===me.toUpperCase());
+    if(myEntry){
+      document.getElementById('yourRankCard').style.display='block';
+      document.getElementById('yourRankNum').textContent='#'+myEntry.rank;
+      document.getElementById('yourRankName').textContent=me.toUpperCase();
+      document.getElementById('yourRankScore').textContent=myEntry.score.toLocaleString();
+    }
+  }
+  document.getElementById('spinner').style.display='none';
+}
+loadLeaderboard();
+</script>
+</body>
+</html>

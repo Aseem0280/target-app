@@ -1,17 +1,14 @@
 {
   "name": "target-rush-arcade",
-  "version": "2.0.0",
-  "description": "Target Rush — Neon Precision Reflex Arcade",
+  "version": "3.0.0",
+  "description": "Target Rush — Neon Precision Reflex Arcade with Firebase",
   "main": "Backend/server.js",
   "scripts": {
     "start": "node Backend/server.js",
-    "dev": "nodemon Backend/server.js"
+    "dev":   "nodemon Backend/server.js"
   },
-  "keywords": ["game", "arcade", "reflex"],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
-    "cors": "^2.8.6",
+    "cors":    "^2.8.6",
     "express": "^4.18.2"
   },
   "devDependencies": {

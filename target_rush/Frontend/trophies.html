@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Target Rush - Trophies</title>
+<script src="js/tailwind-config.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;700;800&family=JetBrains+Mono:wght@400;500;700&family=Hanken+Grotesk:wght@400;500&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+
+<style>
+  body{background-color:#0A0A0F;background-image:radial-gradient(circle at 2px 2px,rgba(255,255,255,0.04) 1px,transparent 0);background-size:40px 40px;}
+  .material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;}
+  .glass-panel{backdrop-filter:blur(12px);background:rgba(31,31,37,0.5);border:1px solid rgba(255,255,255,0.1);}
+  .nav-active{background:rgba(254,0,254,0.2);color:#ffabf3;border-right:2px solid #fe00fe;}
+  .trophy-card{backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.08);transition:transform 0.2s,box-shadow 0.2s;}
+  .trophy-card.unlocked:hover{transform:translateY(-4px);}
+  .trophy-card.locked{filter:grayscale(0.8);opacity:0.45;}
+  @keyframes trophy-shine{0%{left:-100%}100%{left:200%}}
+  .trophy-card.unlocked::after{content:'';position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.06),transparent);animation:trophy-shine 3s infinite;}
+  .progress-bar{height:4px;border-radius:2px;background:rgba(255,255,255,0.1);overflow:hidden;}
+  .progress-fill{height:100%;border-radius:2px;transition:width 1s cubic-bezier(0.4,0,0.2,1);}
+  @keyframes badge-pop{0%{transform:scale(0)}80%{transform:scale(1.1)}100%{transform:scale(1)}}
+  .badge-pop{animation:badge-pop 0.5s cubic-bezier(0.175,0.885,0.32,1.275) forwards;}
+</style>
+</head>
+<body class="font-body-md text-on-background">
+
+<header class="fixed top-0 left-0 right-0 z-50 h-20 flex justify-between items-center px-4 md:px-10 bg-surface/80 backdrop-blur-xl border-b border-outline-variant/30">
+  <a href="index.html" class="font-display-lg text-3xl md:text-5xl text-primary drop-shadow-[0_0_8px_rgba(0,219,233,0.6)]">Target Rush</a>
+  <div class="flex items-center gap-3">
+    <a href="game.html" class="hidden md:flex items-center gap-2 px-4 py-2 bg-primary/20 border border-primary/30 rounded-lg font-label-sm text-label-sm text-primary hover:bg-primary/30 transition-all">
+      <span class="material-symbols-outlined text-sm">sports_esports</span>PLAY
+    </a>
+    <a href="profile.html" class="material-symbols-outlined text-primary-fixed-dim hover:text-primary hover:bg-primary/10 transition-all p-2 rounded-full">account_circle</a>
+  </div>
+</header>
+
+<aside class="fixed left-0 top-0 hidden md:flex flex-col h-full w-64 z-40 bg-surface-container-low/90 backdrop-blur-2xl border-r border-white/5 shadow-2xl pt-24">
+  <div class="px-6 mb-8">
+    <h2 class="font-headline-md text-headline-md text-primary mb-1">TARGET RUSH</h2>
+    <p class="font-label-sm text-label-sm text-on-surface-variant opacity-70" id="sideUser">—</p>
+  </div>
+  <nav class="flex-1 flex flex-col">
+    <a class="flex items-center gap-4 text-on-surface-variant px-6 py-4 opacity-70 hover:bg-white/5 hover:text-primary hover:translate-x-1 transition-all" href="index.html"><span class="material-symbols-outlined">sports_esports</span><span class="font-label-sm text-label-sm">Play</span></a>
+    <a class="flex items-center gap-4 text-on-surface-variant px-6 py-4 opacity-70 hover:bg-white/5 hover:text-primary hover:translate-x-1 transition-all" href="rankings.html"><span class="material-symbols-outlined">leaderboard</span><span class="font-label-sm text-label-sm">Rankings</span></a>
+    <a class="nav-active flex items-center gap-4 px-6 py-4" href="trophies.html"><span class="material-symbols-outlined">military_tech</span><span class="font-label-sm text-label-sm">Trophies</span></a>
+    <a class="flex items-center gap-4 text-on-surface-variant px-6 py-4 opacity-70 hover:bg-white/5 hover:text-primary hover:translate-x-1 transition-all" href="profile.html"><span class="material-symbols-outlined">person</span><span class="font-label-sm text-label-sm">Profile</span></a>
+  </nav>
+  <div class="p-6">
+    <a href="game.html" class="block w-full py-4 text-center bg-gradient-to-r from-primary-container to-surface-tint text-on-primary font-label-sm text-label-sm rounded-lg hover:scale-[1.02] transition-all uppercase tracking-widest font-bold" style="box-shadow:0 0 15px rgba(0,219,233,0.3)">PLAY NOW</a>
+  </div>
+</aside>
+
+<main class="md:ml-64 pt-24 pb-24 md:pb-8 min-h-screen px-4 md:px-10">
+  <div class="max-w-4xl mx-auto space-y-8">
+
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row items-start md:items-end justify-between gap-4">
+      <div>
+        <h1 class="font-display-lg text-3xl md:text-5xl text-primary drop-shadow-[0_0_15px_#00dbe9]">TROPHIES</h1>
+        <p class="font-label-sm text-label-sm text-on-surface-variant opacity-70 mt-1">Achievements & Milestones</p>
+      </div>
+      <div class="glass-panel rounded-xl px-5 py-3 flex items-center gap-4">
+        <div class="text-center">
+          <p class="font-score-display text-2xl text-primary font-bold" id="unlockedCount">0</p>
+          <p class="font-label-sm text-[10px] text-on-surface-variant">UNLOCKED</p>
+        </div>
+        <div class="w-px h-8 bg-white/10"></div>
+        <div class="text-center">
+          <p class="font-score-display text-2xl text-on-surface-variant font-bold" id="totalCount">0</p>
+          <p class="font-label-sm text-[10px] text-on-surface-variant">TOTAL</p>
+        </div>
+        <div class="w-px h-8 bg-white/10"></div>
+        <div class="text-center">
+          <p class="font-score-display text-2xl text-secondary font-bold" id="pctCount">0%</p>
+          <p class="font-label-sm text-[10px] text-on-surface-variant">COMPLETE</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Overall progress bar -->
+    <div class="glass-panel rounded-xl p-4">
+      <div class="flex items-center justify-between mb-2">
+        <span class="font-label-sm text-label-sm text-on-surface-variant">Overall Completion</span>
+        <span class="font-score-display text-sm text-primary" id="overallPct">0%</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill bg-gradient-to-r from-primary-container to-surface-tint" id="overallBar" style="width:0%"></div>
+      </div>
+    </div>
+
+    <!-- Category filter tabs -->
+    <div class="flex gap-2 flex-wrap">
+      <button class="tab-btn px-4 py-2 glass-panel rounded-lg font-label-sm text-label-sm text-primary border border-primary/30 transition-all tab-active" data-cat="all">All</button>
+      <button class="tab-btn px-4 py-2 glass-panel rounded-lg font-label-sm text-label-sm text-on-surface-variant border border-white/10 hover:text-primary hover:border-primary/30 transition-all" data-cat="score">Score</button>
+      <button class="tab-btn px-4 py-2 glass-panel rounded-lg font-label-sm text-label-sm text-on-surface-variant border border-white/10 hover:text-primary hover:border-primary/30 transition-all" data-cat="combo">Combo</button>
+      <button class="tab-btn px-4 py-2 glass-panel rounded-lg font-label-sm text-label-sm text-on-surface-variant border border-white/10 hover:text-primary hover:border-primary/30 transition-all" data-cat="games">Games</button>
+      <button class="tab-btn px-4 py-2 glass-panel rounded-lg font-label-sm text-label-sm text-on-surface-variant border border-white/10 hover:text-primary hover:border-primary/30 transition-all" data-cat="hits">Accuracy</button>
+    </div>
+
+    <!-- Trophy grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="trophyGrid"></div>
+
+  </div>
+</main>
+
+<nav class="fixed bottom-0 w-full md:hidden flex justify-around items-center h-16 px-4 z-50 bg-surface/90 backdrop-blur-lg border-t border-primary/20">
+  <a class="flex flex-col items-center text-on-surface-variant/60" href="index.html"><span class="material-symbols-outlined">home</span><span class="font-label-sm text-[10px]">Home</span></a>
+  <a class="flex flex-col items-center text-on-surface-variant/60" href="rankings.html"><span class="material-symbols-outlined">bar_chart</span><span class="font-label-sm text-[10px]">Rank</span></a>
+  <a class="flex flex-col items-center text-primary scale-110" href="trophies.html"><span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">military_tech</span><span class="font-label-sm text-[10px]">Trophies</span></a>
+  <a class="flex flex-col items-center text-on-surface-variant/60" href="profile.html"><span class="material-symbols-outlined">account_circle</span><span class="font-label-sm text-[10px]">Profile</span></a>
+</nav>
+
+<script>
+const me = localStorage.getItem('playerName') || '';
+const history = JSON.parse(localStorage.getItem('gameHistory') || '[]');
+const pb = parseInt(localStorage.getItem('personalBest') || '0');
+const allBestCombo = history.reduce((m,g)=>Math.max(m,g.bestCombo||1),1);
+const totalHitsAll = history.reduce((s,g)=>s+(g.hits||0),0);
+const gamesPlayed = history.length;
+
+document.getElementById('sideUser').textContent = me ? 'Pilot: '+me : '—';
+
+// ── Trophy Definitions ────────────────────────────────────
+const TROPHIES = [
+  // Score
+  {id:'score_1k',   cat:'score', icon:'🎯', name:'First Strike',    desc:'Score 1,000 points in a game',     req:1000,   val:()=>pb,          color:'#00dbe9', rarity:'COMMON'},
+  {id:'score_5k',   cat:'score', icon:'⚡', name:'Neon Surge',      desc:'Score 5,000 points in a game',     req:5000,   val:()=>pb,          color:'#00dbe9', rarity:'COMMON'},
+  {id:'score_15k',  cat:'score', icon:'🔥', name:'Blaze Protocol',  desc:'Score 15,000 points in a game',    req:15000,  val:()=>pb,          color:'#ffabf3', rarity:'RARE'},
+  {id:'score_30k',  cat:'score', icon:'💎', name:'Crystal Core',    desc:'Score 30,000 points in a game',    req:30000,  val:()=>pb,          color:'#d1bcff', rarity:'RARE'},
+  {id:'score_75k',  cat:'score', icon:'🌟', name:'Supernova',       desc:'Score 75,000 points in a game',    req:75000,  val:()=>pb,          color:'#fbbf24', rarity:'EPIC'},
+  {id:'score_200k', cat:'score', icon:'👑', name:'Apex Legend',     desc:'Score 200,000 points in a game',   req:200000, val:()=>pb,          color:'#fe00fe', rarity:'LEGENDARY'},
+
+  // Combo
+  {id:'combo_3',    cat:'combo', icon:'✊', name:'Triple Tap',      desc:'Reach a ×3 combo',                 req:3,      val:()=>allBestCombo, color:'#00dbe9', rarity:'COMMON'},
+  {id:'combo_5',    cat:'combo', icon:'⚡', name:'Chain Reaction',  desc:'Reach a ×5 combo',                 req:5,      val:()=>allBestCombo, color:'#ffabf3', rarity:'RARE'},
+  {id:'combo_7',    cat:'combo', icon:'🌊', name:'Tidal Force',     desc:'Reach a ×7 combo',                 req:7,      val:()=>allBestCombo, color:'#d1bcff', rarity:'EPIC'},
+  {id:'combo_10',   cat:'combo', icon:'💥', name:'MAX COMBO',       desc:'Hit the maximum ×10 combo',        req:10,     val:()=>allBestCombo, color:'#fbbf24', rarity:'LEGENDARY'},
+
+  // Games played
+  {id:'games_1',    cat:'games', icon:'🕹️', name:'First Boot',      desc:'Play your first game',             req:1,      val:()=>gamesPlayed,  color:'#00dbe9', rarity:'COMMON'},
+  {id:'games_5',    cat:'games', icon:'🔄', name:'Consistent',      desc:'Play 5 games',                     req:5,      val:()=>gamesPlayed,  color:'#00dbe9', rarity:'COMMON'},
+  {id:'games_20',   cat:'games', icon:'📅', name:'Dedicated',       desc:'Play 20 games',                    req:20,     val:()=>gamesPlayed,  color:'#ffabf3', rarity:'RARE'},
+  {id:'games_50',   cat:'games', icon:'🏋️', name:'Veteran',         desc:'Play 50 games',                    req:50,     val:()=>gamesPlayed,  color:'#d1bcff', rarity:'EPIC'},
+  {id:'games_100',  cat:'games', icon:'🎖️', name:'Century Club',    desc:'Play 100 games',                   req:100,    val:()=>gamesPlayed,  color:'#fbbf24', rarity:'LEGENDARY'},
+
+  // Hits/accuracy
+  {id:'hits_50',    cat:'hits',  icon:'🎪', name:'Sharp Eye',       desc:'Score 50 total hits across all games', req:50,   val:()=>totalHitsAll, color:'#00dbe9', rarity:'COMMON'},
+  {id:'hits_200',   cat:'hits',  icon:'🎯', name:'Precision Pro',   desc:'Score 200 total hits',             req:200,    val:()=>totalHitsAll, color:'#ffabf3', rarity:'RARE'},
+  {id:'hits_500',   cat:'hits',  icon:'🔬', name:'Surgeon',         desc:'Score 500 total hits',             req:500,    val:()=>totalHitsAll, color:'#d1bcff', rarity:'EPIC'},
+  {id:'hits_1000',  cat:'hits',  icon:'🦅', name:'Eagle Eye',       desc:'Score 1,000 total hits',           req:1000,   val:()=>totalHitsAll, color:'#fbbf24', rarity:'LEGENDARY'},
+];
+
+const RARITY_COLORS = {
+  COMMON:    {bg:'rgba(0,219,233,0.08)',   border:'rgba(0,219,233,0.2)',   text:'#00dbe9'},
+  RARE:      {bg:'rgba(255,171,243,0.08)', border:'rgba(255,171,243,0.2)', text:'#ffabf3'},
+  EPIC:      {bg:'rgba(209,188,255,0.08)', border:'rgba(209,188,255,0.2)', text:'#d1bcff'},
+  LEGENDARY: {bg:'rgba(251,191,36,0.1)',   border:'rgba(251,191,36,0.3)',  text:'#fbbf24'},
+};
+
+let currentCat = 'all';
+let allUnlocked = 0;
+
+function renderTrophies(cat){
+  const grid = document.getElementById('trophyGrid');
+  grid.innerHTML = '';
+  const filtered = cat === 'all' ? TROPHIES : TROPHIES.filter(t=>t.cat===cat);
+  filtered.forEach((t, idx) => {
+    const current = t.val();
+    const unlocked = current >= t.req;
+    const progress = Math.min(current / t.req * 100, 100);
+    const rc = RARITY_COLORS[t.rarity];
+    const card = document.createElement('div');
+    card.className = `trophy-card rounded-2xl p-5 relative overflow-hidden flex flex-col gap-3 ${unlocked?'unlocked':'locked'}`;
+    card.style.cssText = `background:${unlocked?rc.bg:'rgba(31,31,37,0.3)'};border:1px solid ${unlocked?rc.border:'rgba(255,255,255,0.06)'};${unlocked?'box-shadow:0 0 20px '+rc.border+';':''}`;
+    card.innerHTML = `
+      <div class="flex items-start justify-between">
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl ${unlocked?'':'filter grayscale'}" style="background:${unlocked?rc.bg:'rgba(255,255,255,0.05)'};">${unlocked?t.icon:'🔒'}</div>
+        <span class="font-label-sm text-[9px] px-2 py-0.5 rounded-full border" style="color:${rc.text};border-color:${rc.border};background:${rc.bg}">${t.rarity}</span>
+      </div>
+      <div>
+        <p class="font-label-sm text-sm font-bold ${unlocked?'text-on-surface':'text-on-surface-variant/50'}">${t.name}</p>
+        <p class="font-body-md text-[11px] text-on-surface-variant opacity-70 mt-0.5">${t.desc}</p>
+      </div>
+      <div>
+        <div class="flex justify-between mb-1">
+          <span class="font-label-sm text-[10px] text-on-surface-variant">${Math.min(current,t.req).toLocaleString()} / ${t.req.toLocaleString()}</span>
+          <span class="font-label-sm text-[10px]" style="color:${unlocked?rc.text:'rgba(255,255,255,0.3)'}">${unlocked?'✓ UNLOCKED':Math.round(progress)+'%'}</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width:0%;background:${unlocked?'linear-gradient(90deg,'+rc.text+','+rc.text+'88)':'rgba(255,255,255,0.15)'}" data-width="${progress}%"></div>
+        </div>
+      </div>
+    `;
+    // Stagger animation
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(12px)';
+    setTimeout(()=>{
+      card.style.transition = 'opacity 0.3s, transform 0.3s';
+      card.style.opacity = unlocked?'1':'0.45';
+      card.style.transform = 'none';
+    }, idx*60);
+    grid.appendChild(card);
+  });
+  // Animate progress bars after a short delay
+  setTimeout(()=>{
+    grid.querySelectorAll('.progress-fill[data-width]').forEach(el=>{
+      el.style.width = el.dataset.width;
+    });
+  }, 300);
+}
+
+// Count unlocked
+allUnlocked = TROPHIES.filter(t=>t.val()>=t.req).length;
+const pct = Math.round(allUnlocked/TROPHIES.length*100);
+document.getElementById('unlockedCount').textContent = allUnlocked;
+document.getElementById('totalCount').textContent = TROPHIES.length;
+document.getElementById('pctCount').textContent = pct+'%';
+document.getElementById('overallPct').textContent = pct+'%';
+setTimeout(()=>{document.getElementById('overallBar').style.width=pct+'%';},300);
+
+// Tab switching
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('tab-active'));
+    btn.classList.add('tab-active');
+    currentCat = btn.dataset.cat;
+    renderTrophies(currentCat);
+  });
+});
+
+renderTrophies('all');
+</script>
+</body>
+</html>
